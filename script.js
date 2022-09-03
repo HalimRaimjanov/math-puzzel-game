@@ -118,5 +118,13 @@ class Game {
         this.state = {...this.state, ...newState}
         this.render()
     }
-    
+    handleClickBox(box) {
+        return function() {
+            const nextdoorBoxes = box.getNextdoorBoxes()
+            const blankBox = nextdoorBoxes.find(
+                (nextdoorBox) => this.state.grid[nextdoorBox.y][nextdoorBox.x]===0,
+            )
+            if (blankBox)
+        }
+    }
 }
