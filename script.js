@@ -25,7 +25,7 @@ class Box {
             this.getRightBox(),
             this.getBottomBox(),
             this.getLeftBox(),
-        ].filter((box) => box = /= null)
+        ].filter((box) => box != null)
     }
     getRandomNextdoorBox() {
         const nextdoorBoxes = this.getNextdoorBoxes()
@@ -38,24 +38,24 @@ const swapBoxes = (grid, box1, box2) => {
     grid[box2.y][box2.x] = temp
 }
 const isSolved = (grid) => {
-    return {
+    return (
         grid[0][0] === 1 &&
-            grid[0][1] === 2 &&
-            grid[0][2] === 3 &&
-            grid[0][3] === 4 &&
-            grid[1][0] === 5 &&
-            grid[1][1] === 6 &&
-            grid[1][2] === 7 &&
-            grid[1][3] === 8 &&
-            grid[2][0] === 9 &&
-            grid[2][1] === 10 &&
-            grid[2][2] === 11 &&
-            grid[2][3] === 12 &&
-            grid[3][0] === 13 &&
-            grid[3][1] === 14 &&
-            grid[3][2] === 15 &&
-            grid[3][3] === 0
-    }
+        grid[0][1] === 2 &&
+        grid[0][2] === 3 &&
+        grid[0][3] === 4 &&
+        grid[1][0] === 5 &&
+        grid[1][1] === 6 &&
+        grid[1][2] === 7 &&
+        grid[1][3] === 8 &&
+        grid[2][0] === 9 &&
+        grid[2][1] === 10 &&
+        grid[2][2] === 11 &&
+        grid[2][3] === 12 &&
+        grid[3][0] === 13 &&
+        grid[3][1] === 14 &&
+        grid[3][2] === 15 &&
+        grid[3][3] === 0
+    )
 }
 
 const getRandomGrid = () => {
@@ -103,7 +103,7 @@ class Game {
         this.tickId = null
         this.tick = this.tick.bind(this)
         this.render()
-        this.handleClickBox = this.handleClickBox.bind(this) 
+        this.handleClickBox = this.handleClickBox.bind(this)
     }
 
 
@@ -112,19 +112,81 @@ class Game {
     }
 
     tick() {
-        this.setState({time: this.state.time + 1})
+        this.setState({ time: this.state.time + 1 })
     }
     setState(newState) {
-        this.state = {...this.state, ...newState}
+        this.state = { ...this.state, ...newState }
         this.render()
     }
     handleClickBox(box) {
-        return function() {
+        return function () {
             const nextdoorBoxes = box.getNextdoorBoxes()
             const blankBox = nextdoorBoxes.find(
-                (nextdoorBox) => this.state.grid[nextdoorBox.y][nextdoorBox.x]===0,
+                (nextdoorBox) => this.state.grid[nextdoorBox.y][nextdoorBox.x] === 0,
             )
-            if (blankBox)
+            if (blankBox) {
+                const newGrid = [...this.state.grid]
+                swapBoxes(newGrid, box, blankBox)
+                if (isSolved(newGrid)) {
+                    clearInterval(this.tickId)
+                    this.setState({
+                        status: 'won',
+                        grid: newGrid,
+                        move: this.state.move + 1,
+                    })
+                } else {
+                    this.setState({
+                        grid: newGrid,
+                        move: this.state.move + 1,
+                    })
+                }
+            }
+        }.bind(this)
+    }
+    render() {
+        const { grid, move, time, status } = this.state
+
+        // render grid
+
+        const newGrid = document.createElement('div')
+        newGrid.className = 'grid'
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) {
+                const button = document.createElement('button')
+
+                if (status === 'playing') {
+                    button.addEventListener('click', this.handleClickBox(new Box(j, i)),
+                    )
+                }
+                button.textContent = grid[i][j] === 0 ? '' : grid[i][j].toString()
+                newGrid.appendChild(button)
+            }
+        }
+        document.querySelector('.grid').replaceWith(newGrid)
+
+        //render button
+
+        const newButton = document.createElement('button')
+        if (status === 'ready') newButton.textContent = 'Play'
+        if (status === 'playing') newButton.textContent = 'Reset'
+        if (status === 'won') newButton.textContent = 'Play'
+        newButton.addEventListener('click', () => {
+            clearInterval(this.tickId)
+            this.tickId = setInterval(this.tick, 1000)
+            this.setState(State.start())
+        })
+        document.querySelector('.footer button').replaceWith(newButton)
+        //render move
+        document.getElementById('move').textContent = `Move: ${move}`
+        //render time
+        document.getElementById('time').textContent = `Time: ${time}`
+        //render message
+        if (status === 'won') {
+            document.querySelector('.message').textContent = 'You win!'
+        } else {
+            document.querySelector('.message').textContent = ''
         }
     }
 }
+
+const GAME = Game.ready()

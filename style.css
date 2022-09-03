@@ -70,3 +70,10 @@ body {
     color: #d4ee9f;
     font-weight: auto 0;
 }
+
+.message {
+    display: block;
+    text-align: center;
+    font-size: 40px;
+    font-weight: 900;
+}
